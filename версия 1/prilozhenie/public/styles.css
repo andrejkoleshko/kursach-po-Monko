@@ -1,0 +1,71 @@
+:root {
+  --bg: #f4f6fb;
+  --drop-border: #6c757d;
+  --drop-hover: #0d6efd20;
+  --preview-border: #dee2e6;
+}
+
+body.bg-body {
+  background-color: var(--bg);
+}
+
+.card {
+  border-radius: 0.9rem;
+}
+
+.table > :not(caption) > * > * {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.badge-category {
+  font-weight: 500;
+}
+
+.file-name {
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Drag & Drop */
+.drop-zone {
+  border: 2px dashed var(--drop-border);
+  border-radius: 10px;
+  padding: 25px;
+  text-align: center;
+  transition: 0.2s;
+  background: white;
+  cursor: pointer;
+}
+
+.drop-zone.dragover {
+  background: var(--drop-hover);
+  border-color: #0d6efd;
+}
+
+/* Preview */
+.preview-container {
+  margin-top: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.preview-container img {
+  width: 110px;
+  height: auto;
+  border-radius: 6px;
+  border: 1px solid var(--preview-border);
+  object-fit: cover;
+}
+
+/* Progress bar */
+#upload-progress {
+  transition: width 0.2s ease;
+}
