@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Облачное хранилище документов</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body class="bg-body">
+
+    <!-- ============================
+         СТРАНИЦА ВХОДА
+    ============================= -->
+    <div id="login-page" class="container py-5" style="max-width: 420px;">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+          <h4 class="mb-3 text-center">Вход</h4>
+
+          <div class="mb-3">
+            <label class="form-label">Логин</label>
+            <input id="login-username" class="form-control" />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Пароль</label>
+            <input id="login-password" type="password" class="form-control" />
+          </div>
+
+          <button id="login-btn" class="btn btn-primary w-100 mb-3">
+            Войти
+          </button>
+
+          <div class="text-center">
+            <button id="go-register" class="btn btn-link">
+              Создать аккаунт
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+   <!-- ============================
+     СТРАНИЦА РЕГИСТРАЦИИ
+============================= -->
+<div id="register-page" class="container py-5 hidden" style="max-width: 420px;">
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+
+      <h4 class="mb-3 text-center">Регистрация</h4>
+
+      <div class="mb-3">
+        <label class="form-label">Логин</label>
+        <input id="reg-username" class="form-control" />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input id="reg-email" type="email" class="form-control" />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Пароль</label>
+        <input id="reg-password" type="password" class="form-control" />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Подтверждение пароля</label>
+        <input id="reg-password2" type="password" class="form-control" />
+      </div>
+
+      <hr class="my-3" />
+
+      <p class="small text-muted mb-2">
+        SMTP‑настройки для отправки писем (можно указать Яндекс, Gmail, Mail.ru и т.д.)
+      </p>
+
+      <div class="mb-3">
+        <label class="form-label">SMTP host</label>
+        <input id="reg-smtp-host" class="form-control" placeholder="smtp.yandex.ru" />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">SMTP port</label>
+        <input id="reg-smtp-port" type="number" class="form-control" placeholder="465 или 587" />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">SMTP secure</label>
+        <select id="reg-smtp-secure" class="form-select">
+          <option value="true">true (обычно для 465)</option>
+          <option value="false">false (обычно для 587)</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">SMTP user (логин)</label>
+        <input id="reg-smtp-user" class="form-control" placeholder="example@yandex.ru" />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">SMTP password</label>
+        <input id="reg-smtp-pass" type="password" class="form-control" />
+      </div>
+
+      <button id="reg-btn" class="btn btn-outline-primary w-100 mb-3">
+        Создать аккаунт
+      </button>
+
+      <div class="text-center">
+        <button id="go-login" class="btn btn-link">
+          Уже есть аккаунт
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+    <!-- ============================
+         ОСНОВНОЕ ПРИЛОЖЕНИЕ
+    ============================= -->
+    <div id="app-page" class="hidden">
+
+      <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container-fluid">
+          <span class="navbar-brand fw-semibold">
+            Облачное хранилище документов
+          </span>
+
+          <button id="logout-btn" class="btn btn-light btn-sm">
+            Выйти
+          </button>
+        </div>
+      </nav>
+
+      <main class="container py-4">
+        <div class="row g-4">
+
+          <!-- Загрузка документов -->
+          <section class="col-12 col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+              <div class="card-body">
+
+                <h5 class="card-title mb-3">Загрузка документов</h5>
+                <p class="text-muted small">
+                  Выберите один или несколько файлов. Система автоматически
+                  определит категорию по имени и типу документа. Категорию можно
+                  будет изменить вручную позже
+                </p>
+
+                <form id="upload-form" enctype="multipart/form-data">
+
+                  <div id="drop-zone" class="drop-zone mb-3">
+                    <p class="mb-1">Перетащите файлы сюда</p>
+                    <p class="text-muted small">или нажмите, чтобы выбрать</p>
+                    <input type="file" id="file-input" name="files" multiple hidden />
+                  </div>
+
+                  <div id="preview" class="preview-container"></div>
+
+                  <button type="submit" class="btn btn-primary w-100 mt-3">
+                    Загрузить
+                  </button>
+
+                  <div
+                    id="upload-status"
+                    class="small mt-2 text-muted"
+                    aria-live="polite"
+                  ></div>
+                </form>
+
+              </div>
+            </div>
+          </section>
+
+          <!-- Таблица документов -->
+          <section class="col-12 col-lg-8">
+            <div class="card shadow-sm border-0">
+              <div class="card-body">
+
+                <div class="d-flex flex-column flex-md-row gap-2 mb-3">
+
+                  <div class="flex-grow-1">
+                    <label for="search-input" class="form-label small mb-1">
+                      Поиск
+                    </label>
+                    <input
+                      type="text"
+                      id="search-input"
+                      class="form-control"
+                      placeholder="Название, ключевые слова или описание"
+                    />
+                  </div>
+
+                  <div style="min-width: 220px">
+                    <label for="category-filter" class="form-label small mb-1">
+                      Категория
+                    </label>
+                    <select id="category-filter" class="form-select">
+                      <option value="all">Все категории</option>
+                    </select>
+                  </div>
+
+                  <!-- 🔥 Селектор сортировки -->
+                  <div style="min-width: 220px">
+                    <label for="sort-select" class="form-label small mb-1">
+                      Сортировка
+                    </label>
+                    <select id="sort-select" class="form-select">
+                      <option value="date_desc">Дата ↓ (новые сверху)</option>
+                      <option value="date_asc">Дата ↑ (старые сверху)</option>
+                      <option value="size_desc">Размер ↓ (большие сверху)</option>
+                      <option value="size_asc">Размер ↑ (маленькие сверху)</option>
+                      <option value="name_asc">Имя файла ↑ (А→Я)</option>
+                      <option value="name_desc">Имя файла ↓ (Я→А)</option>
+                    </select>
+                  </div>
+
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table align-middle table-hover">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Название</th>
+                        <th>Категория</th>
+                        <th>Размер</th>
+                        <th>Дата</th>
+                        <th class="text-end">Действия</th>
+                      </tr>
+                    </thead>
+                    <tbody id="documents-table-body">
+                      <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                          Документов пока нет
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <!-- Модалка редактирования -->
+      <div class="modal fade" id="documentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+
+            <div class="modal-header">
+              <h5 class="modal-title">Документ</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+
+            <div class="modal-body">
+              <form id="document-form">
+                <input type="hidden" id="doc-id" />
+
+                <div class="mb-3">
+                  <label class="form-label">Название файла</label>
+                  <input type="text" id="doc-name" class="form-control"  />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Категория</label>
+                  <select id="doc-category" class="form-select"></select>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Описание</label>
+                  <textarea
+                    id="doc-description"
+                    class="form-control"
+                    rows="3"
+                    placeholder="Краткое описание или заметки по документу"
+                  ></textarea>
+                </div>
+
+                <div class="text-end">
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary me-2"
+                    data-bs-dismiss="modal"
+                  >
+                    Отмена
+                  </button>
+                  <button type="submit" class="btn btn-primary">
+                    Сохранить
+                  </button>
+                </div>
+              </form>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
