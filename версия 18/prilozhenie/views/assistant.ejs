@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>ИИ‑ассистент</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    #chat-input {
+      position: sticky;
+      bottom: 0;
+      background: #fff;
+      z-index: 10;
+    }
+    #assistant-output {
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    #recording-indicator {
+      display: none;
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body class="bg-body">
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <div class="container-fluid">
+      <span class="navbar-brand fw-semibold">Облачное хранилище документов</span>
+      <div class="d-flex align-items-center gap-2">
+        <a href="/" class="btn btn-secondary btn-sm">Документы</a>
+        <a href="/assistant" class="btn btn-info btn-sm">ИИ‑ассистент</a>
+        <a href="/profile" class="btn btn-light btn-sm">Профиль</a>
+        <a href="/admin" class="btn btn-outline-warning btn-sm">Админка</a>
+        <button id="logout-btn" class="btn btn-outline-light btn-sm">Выйти</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-4">
+    <div class="row">
+      <div class="col-md-8 d-flex flex-column">
+        <h3 class="mb-3">ИИ‑ассистент</h3>
+        <div id="assistant-output" class="mb-3 flex-grow-1"></div>
+        <div id="chat-input" class="card shadow-sm border-0 p-3">
+          <textarea id="assistant-input"
+                    class="form-control mb-3"
+                    rows="3"
+                    placeholder="Введите вопрос..."></textarea>
+          <div class="d-flex align-items-center gap-2">
+            <button id="assistant-send" class="btn btn-primary flex-grow-1">Спросить</button>
+            <button id="voice-record" class="btn btn-outline-secondary">🎤</button>
+            <span id="recording-indicator">● Идёт запись...</span>
+            <button id="voice-play" class="btn btn-outline-secondary">🔊</button>
+            <button id="voice-stop" class="btn btn-outline-danger">⏹️</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card shadow-sm border-0 p-3">
+          <h5 class="mb-2">Поиск документов:</h5>
+          <div class="input-group mb-3">
+            <input id="doc-search" type="text" class="form-control" placeholder="Введите ключевые слова...">
+          </div>
+          <div class="mb-3">
+            <label for="doc-category" class="form-label">Категория:</label>
+            <select id="doc-category" class="form-select">
+              <option value="all">Все</option>
+            </select>
+          </div>
+          <div id="documents-list" class="form-check"></div>
+          <p class="small text-muted">Можно выбрать вручную или оставить пустым — тогда ассистент сам найдёт релевантные документы.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/assistant.js"></script>
+  <script>
+    async function loadCategories() {
+      const res = await fetch('/api/categories');
+      const cats = await res.json();
+      const select = document.getElementById('doc-category');
+      select.innerHTML = '<option value="all">Все</option>' +
+        cats.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+    loadCategories();
+  </script>
+</body>
+</html>
