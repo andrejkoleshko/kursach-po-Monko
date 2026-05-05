@@ -1,0 +1,147 @@
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import { Request, Response, NextFunction } from 'express';
+import * as db from './db';
+import { sendActivationEmail } from './mailer';
+import { ROLE_LEVEL } from './db';
+import { log } from './logger';
+
+
+const SECRET = 'supersecretkey';
+
+
+export async function register(req: Request, res: Response) {
+  const {
+    username,
+    email,
+    password,
+    smtp_host,
+    smtp_port,
+    smtp_secure,
+    smtp_user,
+    smtp_pass
+  } = req.body;
+
+  if (!username || !email || !password)
+    return res.status(400).json({ error: 'Заполните логин, email и пароль' });
+
+  if (!smtp_host || !smtp_port || !smtp_user || !smtp_pass)
+    return res.status(400).json({ error: 'Заполните SMTP-настройки' });
+
+  if (db.getUserByUsername(username))
+    return res.status(409).json({ error: 'Логин уже занят' });
+
+  if (db.getUserByEmail(email))
+    return res.status(409).json({ error: 'Email уже используется' });
+
+  const role: 'user' = 'user';
+  const hash = await bcrypt.hash(password, 10);
+  const token = crypto.randomBytes(32).toString('hex');
+
+  const user = db.addUser({
+    username,
+    email,
+    password_hash: hash,
+    activation_token: token,
+    smtp_host,
+    smtp_port: Number(smtp_port),
+    smtp_secure: smtp_secure === 'true' || smtp_secure === true,
+    smtp_user,
+    smtp_pass,
+    role
+  });
+
+  log("REGISTER_USER", {
+    userId: user.id,
+    username: user.username,
+    email: user.email
+  });
+
+  try {
+    await sendActivationEmail(user);
+  } catch (e) {
+    console.error('Ошибка отправки письма:', e);
+    return res.status(500).json({ error: 'Не удалось отправить письмо активации' });
+  }
+
+  res.json({ success: true });
+}
+
+export async function login(req: Request, res: Response) {
+  const { username, password } = req.body;
+
+  const user = db.getUserByUsername(username);
+  if (!user) return res.status(401).json({ error: 'Неверный логин или пароль' });
+
+  if (!user.is_active)
+    return res.status(403).json({ error: 'Аккаунт не активирован. Проверьте email' });
+
+  const ok = await bcrypt.compare(password, user.password_hash);
+  if (!ok) return res.status(401).json({ error: 'Неверный логин или пароль' });
+
+  const token = jwt.sign({ id: user.id }, SECRET, { expiresIn: '30m' });
+
+  res.cookie('token', token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    path: '/'
+  });
+
+  log("LOGIN", {
+    userId: user.id,
+    username: user.username
+  });
+
+  res.json({ success: true });
+}
+
+export function authRequired(req: Request, res: Response, next: NextFunction) {
+  const token = (req as any).cookies?.token;
+  if (!token) {
+    log("AUTH_REQUIRED_FAIL", { reason: "no_token" });
+    return res.status(401).json({ error: 'Не авторизован' });
+  }
+
+  try {
+    const data = jwt.verify(token, SECRET) as any;
+    (req as any).userId = data.id;
+
+    log("AUTH_REQUIRED_OK", { userId: data.id });
+
+    next();
+  } catch {
+    log("AUTH_REQUIRED_FAIL", { reason: "invalid_token", token });
+    res.status(401).json({ error: 'Неверный токен' });
+  }
+}
+
+// 🔥 Проверка роли по уровню
+export function requireRole(minRole: keyof typeof ROLE_LEVEL) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const userId = (req as any).userId;
+    const user = db.getUserById(userId);
+
+    if (!user) {
+      log("ROLE_CHECK_FAIL", { userId, reason: "no_user" });
+      return res.status(401).json({ error: 'Не авторизован' });
+    }
+
+    if (ROLE_LEVEL[user.role] < ROLE_LEVEL[minRole]) {
+      log("ROLE_CHECK_FAIL", {
+        userId,
+        role: user.role,
+        required: minRole
+      });
+      return res.status(403).json({ error: 'Недостаточно прав' });
+    }
+
+    log("ROLE_CHECK_OK", {
+      userId,
+      role: user.role,
+      required: minRole
+    });
+
+    next();
+  };
+}
